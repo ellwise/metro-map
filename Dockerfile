@@ -12,6 +12,7 @@ WORKDIR /app
 RUN pip install --upgrade pip
 RUN pip install -r ./requirements.txt
 
+# this disto runs python 3.7, others use older versions...
 FROM gcr.io/distroless/python3-debian10
 LABEL maintainer "Elliott Wise <ell.wise@gmail.com>"
 COPY --from=build-env /app /app
