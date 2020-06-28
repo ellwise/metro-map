@@ -45,7 +45,7 @@ def update_plot(station_list, style):
 )
 def update_store(_):
     options = (
-        {"label":f"{v} [{k}]", "value":k}
+        {"label":f"{v} [{k.split(': ')[1]}]", "value":k}
         for k,v in zip(G.vs["id"],G.vs["name"])
         if "EntEx" in k
     )
