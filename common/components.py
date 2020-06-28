@@ -53,7 +53,7 @@ def plot_nx(G, station_list, style):
         lat_ref = 51.5074 # london
         ys = {k:lat*circumference_poles/360 for k,lat in lats.items()}
         xs = {k:lon*circumference_equator*np.cos(lat_ref)/360 for k,lon in lons.items()}
-        pos = {k:np.array([v0,v1]) for (k,v0),(k,v1) in zip(xs.items(),ys.items())}
+        pos = {k:np.array([xs[k],ys[k]]) for k in xs}
     nx.set_node_attributes(G, pos, name="pos")
 
     edge_traces = []
