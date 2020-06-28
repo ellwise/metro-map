@@ -1,0 +1,13 @@
+version: "3.3"
+
+services:
+  tube-map-dash:
+    build:
+      context: .
+    image: tube-map-dash:0.3
+    container_name: tube-map-dash
+    ports:
+      - "8050:8050"
+    environment:
+      - TARGET=LIVE
+    restart: unless-stopped
