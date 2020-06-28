@@ -40,27 +40,35 @@ def update_plot(station_list, style):
     return graph
 
 @app.callback(
+    Output("maps-store","data"),
+    [Input("url","pathname")]
+)
+def update_store(_):
+    options = (
+        {"label":f"{v} [{k}]", "value":k}
+        for k,v in zip(G.vs["id"],G.vs["name"])
+        if "EntEx" in k
+    )
+    options = sorted(options, key=lambda t: t["label"])
+    return options
+
+@app.callback(
     Output("maps-dropdown", "options"),
     [Input("maps-dropdown", "search_value"),
     Input("maps-dropdown", "value")],
+    [State("maps-store","data")]
 )
-def update_options(search_value, value):
+def update_options(search_value, value, data):
 
     # make sure that the set values are in the option list, else they will disappear
     # from the shown select list, but still part of the `value`
     clean = lambda s: "".join(s.split()).lower()
-    check = lambda s1,s2: all(x in clean(s2) for x in clean(s1)) if s1 and len(s1)>3 else False
-    all_names = G.vs["name"]
-    all_ids = G.vs["id"]
-    js = [
-        j for j,(k,v) in enumerate(zip(all_ids,all_names))
-        if "EntEx" in k and (
-            k in (value or []) or
-            check(search_value, v)
-        )
+    check = lambda s1,s2: all(x in clean(s2) for x in clean(s1)) if s1 and len(s1)>2 else False
+    options = [
+        o for o in data
+        if o["value"] in (value or []) or
+        check(search_value, o["label"])
     ]
-    options = ({"label":f"{all_names[j]} [{all_ids[j]}]", "value":all_ids[j]} for j in js)
-    options = sorted(options, key=lambda t: t["label"])
     return options
 
 '''

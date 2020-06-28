@@ -54,6 +54,10 @@ def make_layout():
                 children=dbc.Col(
                     children=html.Div(id="maps-plot")
                 )
+            ),
+            dcc.Store(
+                id="maps-store",
+                storage_type="local"
             )
         ]
     )
