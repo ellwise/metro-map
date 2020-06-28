@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 
 import networkx as nx
 import numpy as np
+import utm
 
 def make_blank_figure():
     layout = go.Layout(
@@ -46,14 +47,10 @@ def plot_nx(G, station_list, style):
         pos = nx.spectral_layout(G)
         pos = nx.kamada_kawai_layout(G, pos=pos)
     elif style=="geographical":
+        # https://en.wikipedia.org/wiki/Geographic_coordinate_system#Length_of_a_degree
         lats = nx.get_node_attributes(G,"lat")
         lons = nx.get_node_attributes(G,"lon")
-        circumference_poles = 40008000
-        circumference_equator = 40075160
-        lat_ref = 51.5074 # london
-        ys = {k:lat*circumference_poles/360 for k,lat in lats.items()}
-        xs = {k:lon*circumference_equator*np.cos(lat_ref)/360 for k,lon in lons.items()}
-        pos = {k:np.array([xs[k],ys[k]]) for k in xs}
+        pos = {k:np.array(utm.from_latlon(lats[k],lons[k])[0:2]) for k in lats}
     nx.set_node_attributes(G, pos, name="pos")
 
     edge_traces = []

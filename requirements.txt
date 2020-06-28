@@ -30,5 +30,6 @@ scipy==1.4.1
 six==1.15.0
 texttable==1.6.2
 urllib3==1.25.9
+utm==0.5.0
 Werkzeug==1.0.1
 zope.interface==5.1.0
