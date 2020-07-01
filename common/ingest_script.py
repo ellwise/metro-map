@@ -114,11 +114,12 @@ df_edges.loc[df_edges["line_id"]=="pedestrian","mode"] = "pedestrian"
 df_edges.loc[df_edges["line_id"]=="pedestrian","line_name"] = "Pedestrian"
 
 # add times to the link dataframe
-df_edges["weight"] = 5 # default for pedestrian links
-df_edges.loc[df_edges["mode"]=="bus","weight"] = 320 / (9.3*1.60934*0.277778*60) # miles/hr > km/hr > m/s > m/min
+df_edges["weight"] = 3 # default for pedestrian links
+df_edges.loc[df_edges["mode"]=="bus","weight"] = 30 + 320 / (9.3*1.60934*0.277778*60) # miles/hr > km/hr > m/s > m/min
 df_edges.loc[df_edges["mode"]=="overground","weight"] = 5 # guess... do some analysis on the excel files I have... maybe do it by line...
 df_edges.loc[df_edges["mode"]=="tube","weight"] = 2 # guess...
 df_edges.loc[df_edges["mode"]=="dlr","weight"] = 3 # guess...
+df_edges.loc[df_edges["line_id"]=="waterloo-city","weight"] = 6 # guess...
 
 # build the network
 print("Building network...")
