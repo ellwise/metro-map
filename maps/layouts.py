@@ -13,6 +13,7 @@ def make_layout():
     return dbc.Container(
         children=[
             dbc.Row(
+                className="mt-3",
                 justify="between",
                 children=[
                     dbc.Col(
