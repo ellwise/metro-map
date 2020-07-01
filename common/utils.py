@@ -6,31 +6,10 @@ import igraph as ig
 GRAPH = ig.read("./common/data_processed/ig_graph_all.pickle",format="pickle")
 
 def get_subgraph(modes):
-    lines = {}
-    all_lines = set(GRAPH.es["line_id"])
-    pedestrian_lines = set(["pedestrian"])
-    lines["tube"] = set([
-        "bakerloo",
-        "central",
-        "circle",
-        "district",
-        "hammersmith-city",
-        "jubilee",
-        "metropolitan",
-        "northern",
-        "piccadilly",
-        "victoria",
-        "waterloo-city"
-    ])
-    lines["overground"] = set(["london-overground"])
-    lines["dlr"] = set(["dlr"])
-    lines["bus"] = all_lines - (lines["tube"] | lines["overground"] | lines["dlr"])
-
-    # extract the mode and interchanges
-    modes_lines = pedestrian_lines.union(*(lines[m] for m in modes))
+    # extract edges with a valid mode plus interchanges
     G = GRAPH.subgraph_edges([
         e for e in GRAPH.es
-        if e["line_id"] in modes_lines
+        if e["mode"] in [*modes,"pedestrian"]
     ], delete_vertices=True)
     # find strongly connected subgraphs
     Gs = G.decompose(mode=ig.STRONG, maxcompno=1, minelements=2)
@@ -90,9 +69,9 @@ def shortest_paths(G, station_list):
     G_sub = G.subgraph_edges(edges)
 
     ebunch = (
-        (ids[edge[0]], ids[edge[1]], {"line_id":line_id, "weight":weight})
+        (ids[edge[0]], ids[edge[1]], {"line_id":line_id, "weight":weight, "line_name":line_name})
         for ids in [G_sub.vs['id']]
-        for edge,line_id,weight in zip(G_sub.get_edgelist(), G_sub.es["line_id"], G_sub.es["weight"])
+        for edge,line_id,weight,line_name in zip(G_sub.get_edgelist(), G_sub.es["line_id"], G_sub.es["weight"], G_sub.es["line_name"])
     )
     G_nx = nx.DiGraph()
     G_nx.add_edges_from(ebunch)

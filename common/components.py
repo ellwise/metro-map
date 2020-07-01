@@ -55,11 +55,11 @@ def plot_nx(G, station_list, style):
 
     edge_traces = []
     colours = [v for _,v in nx.get_edge_attributes(G,"fill_colour").items()]
-    names = [v for _,v in nx.get_edge_attributes(G,"line_id").items()]
+    names = [v for _,v in nx.get_edge_attributes(G,"line_name").items()]
     unique_colours_names = list(set(zip(colours, names)))
     unique_colours_names = sorted(unique_colours_names, key=lambda x: x[1])
     for colour,name in unique_colours_names:
-        edges = [e for e in G.edges() if G.edges[e]["line_id"]==name]
+        edges = [e for e in G.edges() if G.edges[e]["line_name"]==name]
         edge_x = [e for edge in edges for e in [G.nodes[edge[0]]['pos'][0], G.nodes[edge[1]]['pos'][0], None]]
         edge_y = [e for edge in edges for e in [G.nodes[edge[0]]['pos'][1], G.nodes[edge[1]]['pos'][1], None]]
         edge_trace = go.Scatter(
@@ -70,11 +70,11 @@ def plot_nx(G, station_list, style):
                 color=colour if name!="pedestrian" else "#000000",
                 width=3 if name!="pedestrian" else 6
             ),
-            name=name.capitalize(),
-            showlegend=name!="pedestrian"
+            name=name,
+            showlegend=name!="Pedestrian"
         )
         edge_traces.append(edge_trace)
-        if name!="pedestrian":
+        if name!="Pedestrian":
             edge_cx = [(G.nodes[edge[0]]['pos'][0] + G.nodes[edge[1]]['pos'][0])/2 for edge in edges]
             edge_cy = [(G.nodes[edge[0]]['pos'][1] + G.nodes[edge[1]]['pos'][1])/2 for edge in edges]
             edge_trace = go.Scatter(
@@ -83,10 +83,10 @@ def plot_nx(G, station_list, style):
                 mode='markers',
                 marker=dict(
                     opacity=0,
-                    color=colour if name!="pedestrian" else "#ffffff",
+                    color=colour if name!="Pedestrian" else "#ffffff",
                 ),
                 name="",
-                text=[name.capitalize() for _ in edge_cx],
+                text=[name for _ in edge_cx],
                 showlegend=False,
                 hoverinfo="text",
             )
@@ -102,7 +102,6 @@ def plot_nx(G, station_list, style):
             color="#ffffff",
             width=2
         ),
-        name=name.capitalize(),
         showlegend=False
     )
 

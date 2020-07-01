@@ -101,12 +101,29 @@ df_metro.rename(inplace=True, columns={"name":"name_from"})
 df_metro["name_to"] = df_metro["name_from"]
 df_edges = pd.concat([df_metro, df_interchanges],ignore_index=True)
 
+# add modes to the link dataframe
+print("Adding mode information...")
+df_edges = pd.merge(
+    left=df_edges,
+    right=df_lines.rename(columns={"name":"line_name"}),
+    on="line_id",
+    how="left",
+    validate="m:1"
+)
+df_edges.loc[df_edges["line_id"]=="pedestrian","mode"] = "pedestrian"
+df_edges.loc[df_edges["line_id"]=="pedestrian","line_name"] = "Pedestrian"
+
 # build the network
 print("Building network...")
 source_nodes = (df_edges["name_from"] + ": " + df_edges["naptan_from"]).to_list()
 target_nodes = (df_edges["name_to"] + ": " + df_edges["naptan_to"]).to_list()
 line_ids = df_edges["line_id"].to_list()
-ebunch = ((s, t, {"line_id":l}) for s,t,l in zip(source_nodes, target_nodes, line_ids))
+modes = df_edges["mode"].to_list()
+line_names = df_edges["line_name"].to_list()
+ebunch = (
+    (s, t, {"line_id":l, "mode":m, "line_name":n})
+    for s,t,l,m,n in zip(source_nodes, target_nodes, line_ids, modes, line_names)
+)
 G = nx.DiGraph()
 G.add_edges_from(ebunch)
 
