@@ -2,6 +2,7 @@ import networkx as nx
 import json
 from collections import defaultdict
 import igraph as ig
+import numpy as np
 
 GRAPH = ig.read("./common/data_processed/ig_graph_all.pickle",format="pickle")
 
@@ -12,9 +13,13 @@ def get_subgraph(modes):
         if e["mode"] in [*modes,"pedestrian"]
     ], delete_vertices=True)
     # find strongly connected subgraphs
-    Gs = G.decompose(mode=ig.STRONG, maxcompno=1, minelements=2)
+    #Gs = G.decompose(mode=ig.STRONG, maxcompno=1, minelements=2)
+    Gs = G.clusters(mode=ig.STRONG)
     # extract the largest subgraph
-    G = Gs[sorted(((j,g.vcount()) for j,g in enumerate(Gs)), key=lambda tup: tup[1])[-1][0]]
+    j = np.argmax(Gs.sizes())
+    G = Gs.subgraph(j)
+    #j = np.argmax([g.vcount() for g in Gs])
+    #G = Gs[j]
     return G
 
 def k_shortest_paths(G, source_val, target_val, k):
@@ -51,19 +56,15 @@ def shortest_paths(G, station_list):
     Gp.vs["id"] = G.vs["name"]
     shortest_paths = []
     for source_val in station_list:
-        for target_val in station_list:
-            if target_val != source_val:
-                #y = nx.shortest_simple_paths(G, source_val, target_val, weight="weight")
-                #new_path = next(y)
-                new_path = Gp.get_shortest_paths(source_val, to=target_val, mode=ig.OUT, output="vpath")
-                new_path = new_path[0]
-                # doesn't share the same node names
-                #get_names = lambda path: [G.nodes[u]["name"] for u in path]
-                get_names = lambda path: [G.vs["name"][u] for u in path]
-                new_names = get_names(new_path)
-                old_names = [get_names(path) for path in shortest_paths]
-                if not new_names in old_names:
-                    shortest_paths.append(new_path)
+        target_vals = [v for v in station_list if v!=source_val]
+        new_paths = Gp.get_shortest_paths(source_val, to=target_vals, weights="weight", mode=ig.OUT, output="vpath")
+        for new_path in new_paths:
+            # doesn't share the same node names
+            get_names = lambda path: [G.vs["name"][u] for u in path]
+            new_names = get_names(new_path)
+            old_names = [get_names(path) for path in shortest_paths]
+            if not new_names in old_names:
+                shortest_paths.append(new_path)
 
     edges = [edge for path in shortest_paths for edge in zip(path[:-1],path[1:])]
     G_sub = G.subgraph_edges(edges)
