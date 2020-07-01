@@ -3,14 +3,40 @@ import json
 from collections import defaultdict
 import igraph as ig
 
-#G_map = {}
-#for mode in ["all"]:#,"bus"]:#,"dlr","tube","overground"]:
-#    with open(f"./common/data_processed/nx_graph_{mode}.json") as f:
-#        data = json.load(f)
-#        G_map[mode] = nx.node_link_graph(data)
-#        #nx.write_graphml(G_map[mode],f"./common/data_processed/ig_graph_{mode}.graphml")
+GRAPH = ig.read("./common/data_processed/ig_graph_all.pickle",format="pickle")
 
-G = ig.read("./common/data_processed/ig_graph_all.pickle",format="pickle")
+def get_subgraph(modes):
+    lines = {}
+    all_lines = set(GRAPH.es["line_id"])
+    pedestrian_lines = set(["pedestrian"])
+    lines["tube"] = set([
+        "bakerloo",
+        "central",
+        "circle",
+        "district",
+        "hammersmith-city",
+        "jubilee",
+        "metropolitan",
+        "northern",
+        "piccadilly",
+        "victoria",
+        "waterloo-city"
+    ])
+    lines["overground"] = set(["london-overground"])
+    lines["dlr"] = set(["dlr"])
+    lines["bus"] = all_lines - (lines["tube"] | lines["overground"] | lines["dlr"])
+
+    # extract the mode and interchanges
+    modes_lines = pedestrian_lines.union(*(lines[m] for m in modes))
+    G = GRAPH.subgraph_edges([
+        e for e in GRAPH.es
+        if e["line_id"] in modes_lines
+    ], delete_vertices=True)
+    # find strongly connected subgraphs
+    Gs = G.decompose(mode=ig.STRONG, maxcompno=1, minelements=2)
+    # extract the largest subgraph
+    G = Gs[sorted(((j,g.vcount()) for j,g in enumerate(Gs)), key=lambda tup: tup[1])[-1][0]]
+    return G
 
 def k_shortest_paths(G, source_val, target_val, k):
 
@@ -71,32 +97,11 @@ def shortest_paths(G, station_list):
     G_nx = nx.DiGraph()
     G_nx.add_edges_from(ebunch)
     nx.set_node_attributes(G_nx, {
-        k:{"name":v, "lat":lat, "lon":lon}
-        for k,v,lat,lon in zip(G_sub.vs["id"],G_sub.vs["name"],G_sub.vs["lat"],G_sub.vs["lon"])
+        k:{"name":v, "x":x, "y":y}
+        for k,v,x,y in zip(G_sub.vs["id"],G_sub.vs["name"],G_sub.vs["x"],G_sub.vs["y"])
     })
 
     return G_nx
-
-    #get_ids = lambda path: [G2.vs["id"][u] for u in path]
-    #shortest_paths = [get_ids(path) for path in shortest_paths]
-
-    #ebunch = ((node1, node2)
-    #            for path in shortest_paths
-    #                for node1,node2 in zip(path[:-1],path[1:]))
-    #G_sub = G.edge_subgraph(ebunch)
-    #return G_sub
-
-    # convert to a sub-graph
-    #ebunch = ((node1, node2, G.edges[node1,node2])
-    #            for path in shortest_paths
-    #                for node1,node2 in zip(path[:-1],path[1:]))
-    #nbunch = ((node, G.nodes[node]) for path in shortest_paths for node in path)
-
-    #G_sub = nx.DiGraph()
-    #G_sub.add_edges_from(ebunch)
-    #nx.set_node_attributes(G_sub, {k:v for k,v in nbunch})
-
-    #return G_sub
 
 def simplify_graph(G):
     G_sub = nx.DiGraph()
@@ -105,7 +110,8 @@ def simplify_graph(G):
     nbunch = ((node.split(": ")[1], G.nodes[node]) for node in G.nodes())
     G_sub.add_edges_from(ebunch)
     nx.set_node_attributes(G_sub, {k:v for k,v in nbunch})
-    nx.set_edge_attributes(G_sub, 1, name="weight")
+    #nx.set_edge_attributes(G_sub, 1, name="weight")
+    nx.set_edge_attributes(G_sub, {e:(0.001 if G_sub.edges[e]["line_id"]=="pedestrian" else 1) for e in G_sub.edges()}, name="weight")
 
     return G_sub
 

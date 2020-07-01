@@ -13,31 +13,26 @@ def make_layout():
     return dbc.Container(
         children=[
             dbc.Row(
-                className="mt-3",
+                justify="between",
                 children=[
                     dbc.Col(
-                        xs=12,
-                        sm=12,
-                        md=12,
-                        lg=12,
-                        xl=9,
-                        children=dcc.Dropdown(
-                            id="maps-dropdown",
-                            multi=True,
-                            clearable=True,
-                            placeholder="Add stops to generate a map...",
-                            persistence=True,
-                            persistence_type="local"
+                        width="auto",
+                        children=dbc.Checklist(
+                            options=[
+                                {"label":"Bus", "value":"bus"},
+                                {"label":"DLR", "value":"dlr"},
+                                {"label":"Overground", "value":"overground"},
+                                {"label":"Tube", "value":"tube"}
+                            ],
+                            value=["bus","dlr","overground","tube"],
+                            id="maps-checklist",
+                            inline=True
                         )
                     ),
                     dbc.Col(
-                        xs=12,
-                        sm=12,
-                        md=12,
-                        lg=12,
-                        xl=3,
+                        width="auto",
                         children=dbc.RadioItems(
-                            className="mt-2",
+                            className="float-right",
                             options=[
                                 {"label": "Schematic", "value": "schematic"},
                                 {"label": "Geographical", "value": "geographical"},
@@ -45,6 +40,21 @@ def make_layout():
                             value="schematic",
                             id="maps-radioitems-input",
                             inline=True
+                        )
+                    ),
+                ]
+            ),
+            dbc.Row(
+                className="mt-3",
+                children=[
+                    dbc.Col(
+                        children=dcc.Dropdown(
+                            id="maps-dropdown",
+                            multi=True,
+                            clearable=True,
+                            placeholder="Add stops to generate a map...",
+                            persistence=True,
+                            persistence_type="local"
                         )
                     ),
                 ]

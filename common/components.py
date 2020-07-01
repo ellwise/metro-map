@@ -48,9 +48,9 @@ def plot_nx(G, station_list, style):
         pos = nx.kamada_kawai_layout(G, pos=pos)
     elif style=="geographical":
         # https://en.wikipedia.org/wiki/Geographic_coordinate_system#Length_of_a_degree
-        lats = nx.get_node_attributes(G,"lat")
-        lons = nx.get_node_attributes(G,"lon")
-        pos = {k:np.array(utm.from_latlon(lats[k],lons[k])[0:2]) for k in lats}
+        x = nx.get_node_attributes(G,"x")
+        y = nx.get_node_attributes(G,"y")
+        pos = {k:np.array([x[k],y[k]]) for k in x}
     nx.set_node_attributes(G, pos, name="pos")
 
     edge_traces = []

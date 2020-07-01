@@ -9,7 +9,8 @@ from common.utils import (
     shortest_paths,
     style_graph,
     simplify_graph,
-    G
+    get_subgraph,
+    GRAPH
 )
 
 import json
@@ -20,12 +21,15 @@ import igraph as ig
 @app.callback(
     Output("maps-plot","children"),
     [Input("maps-dropdown","value"),
-    Input("maps-radioitems-input","value")]
+    Input("maps-radioitems-input","value")],
+    [State("maps-checklist", "value")]
 )
-def update_plot(station_list, style):
+def update_plot(station_list, style, modes):
 
     if station_list is None or len(station_list)<2:
         return None
+
+    G = get_subgraph(modes)
 
     G_sub = shortest_paths(G, station_list)
     G_sub = simplify_graph(G_sub)
@@ -41,11 +45,13 @@ def update_plot(station_list, style):
 
 @app.callback(
     Output("maps-store","data"),
-    [Input("url","pathname")]
+    [Input("url","pathname"),
+    Input("maps-checklist","value")]
 )
-def update_store(_):
+def update_store(_, modes):
+    G = get_subgraph(modes)
     options = (
-        {"label":f"{v} [{k.split(': ')[1]}]", "value":k}
+        {"label":f"{v}", "value":k}
         for k,v in zip(G.vs["id"],G.vs["name"])
         if "EntEx" in k
     )
@@ -55,21 +61,37 @@ def update_store(_):
 @app.callback(
     Output("maps-dropdown", "options"),
     [Input("maps-dropdown", "search_value"),
-    Input("maps-dropdown", "value")],
+    Input("maps-dropdown", "value"),
+    Input("maps-checklist", "value")],
     [State("maps-store","data")]
 )
-def update_options(search_value, value, data):
+def update_options(search_value, value, modes, data):
 
     # make sure that the set values are in the option list, else they will disappear
     # from the shown select list, but still part of the `value`
     clean = lambda s: "".join(s.split()).lower()
-    check = lambda s1,s2: all(x in clean(s2) for x in clean(s1)) if s1 and len(s1)>2 else False
+    #check = lambda s1,s2: all(x in clean(s2) for x in clean(s1)) if s1 and len(s1)>2 else False
+    check = lambda s1,s2: clean(s1) in clean(s2) if s1 and len(s1)>1 else False
     options = [
         o for o in data
         if o["value"] in (value or []) or
         check(search_value, o["label"])
     ]
     return options
+
+@app.callback(
+    Output("maps-dropdown","value"),
+    [Input("maps-store","data")],
+    [State("maps-dropdown","value")]
+)
+def update_values(data, old_values):
+    # old_value is None prevents wrrors in the second list comprehension
+    # data is None ensures that the persistent dropdown items work (doesn't seem to always work...)
+    if old_values is None or data is None:
+        raise PreventUpdate
+    data_values = [d["value"] for d in data]
+    new_values = [v for v in old_values if v in data_values]
+    return new_values
 
 '''
 @app.callback(
