@@ -66,7 +66,7 @@ df_nodes = pd.merge(
 
 # cluster the nodes (give un-clustered points a unique cluster is)
 print("Clustering stops...")
-clusters = DBSCAN(eps=100, min_samples=2).fit(df_nodes[["x","y"]].values)
+clusters = DBSCAN(eps=50, min_samples=2).fit(df_nodes[["x","y"]].values)
 df_nodes["cluster_id"] = clusters.labels_
 solo_nodes = df_nodes["cluster_id"]==-1
 df_nodes.loc[solo_nodes,"cluster_id"] = -df_nodes.index[solo_nodes]
