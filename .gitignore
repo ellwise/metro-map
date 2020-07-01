@@ -1,6 +1,5 @@
 __pycache__/*
 common/__pycache__/*
-common/bak/*
 common/data_processed/*
 common/data_raw/*
 env/*
