@@ -113,6 +113,13 @@ df_edges = pd.merge(
 df_edges.loc[df_edges["line_id"]=="pedestrian","mode"] = "pedestrian"
 df_edges.loc[df_edges["line_id"]=="pedestrian","line_name"] = "Pedestrian"
 
+# add times to the link dataframe
+df_edges["weight"] = 5 # default for pedestrian links
+df_edges.loc[df_edges["mode"]=="bus","weight"] = 320 / (9.3*1.60934*0.277778*60) # miles/hr > km/hr > m/s > m/min
+df_edges.loc[df_edges["mode"]=="overground","weight"] = 5 # guess... do some analysis on the excel files I have... maybe do it by line...
+df_edges.loc[df_edges["mode"]=="tube","weight"] = 2 # guess...
+df_edges.loc[df_edges["mode"]=="dlr","weight"] = 3 # guess...
+
 # build the network
 print("Building network...")
 source_nodes = (df_edges["name_from"] + ": " + df_edges["naptan_from"]).to_list()
@@ -120,16 +127,13 @@ target_nodes = (df_edges["name_to"] + ": " + df_edges["naptan_to"]).to_list()
 line_ids = df_edges["line_id"].to_list()
 modes = df_edges["mode"].to_list()
 line_names = df_edges["line_name"].to_list()
+weights = df_edges["weight"].to_list()
 ebunch = (
-    (s, t, {"line_id":l, "mode":m, "line_name":n})
-    for s,t,l,m,n in zip(source_nodes, target_nodes, line_ids, modes, line_names)
+    (s, t, {"line_id":l, "mode":m, "line_name":n, "weight":w})
+    for s,t,l,m,n,w in zip(source_nodes, target_nodes, line_ids, modes, line_names, weights)
 )
 G = nx.DiGraph()
 G.add_edges_from(ebunch)
-
-# add supplemental edge information
-attrs = {(u,v):{"weight":3} for u,v in G.edges()}
-nx.set_edge_attributes(G, attrs)
 
 # add supplemental node information
 df_nodes["node"] = df_nodes["name"] + ": " + df_nodes["naptan"]
