@@ -7,19 +7,16 @@ import numpy as np
 GRAPH = ig.read("./common/data_processed/ig_graph_all.pickle",format="pickle")
 
 def get_subgraph(modes):
-    # extract edges with a valid mode plus interchanges
-    G = GRAPH.subgraph_edges([
-        e for e in GRAPH.es
-        if e["mode"] in [*modes,"pedestrian"]
-    ], delete_vertices=True)
-    # find strongly connected subgraphs
-    #Gs = G.decompose(mode=ig.STRONG, maxcompno=1, minelements=2)
-    Gs = G.clusters(mode=ig.STRONG)
-    # extract the largest subgraph
-    j = np.argmax(Gs.sizes())
-    G = Gs.subgraph(j)
-    #j = np.argmax([g.vcount() for g in Gs])
-    #G = Gs[j]
+
+    if len(modes)==4:
+        return GRAPH
+
+    vs_not = frozenset((
+        v for e in GRAPH.es for v in (e.source, e.target)
+        if e["mode"] not in [*modes,"pedestrian"]
+    ))
+    vs = frozenset(GRAPH.vs).difference(vs_not)
+    G = GRAPH.induced_subgraph(vs)
     return G
 
 def k_shortest_paths(G, source_val, target_val, k):
