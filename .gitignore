@@ -1,6 +1,6 @@
-__pycache__/*
-common/__pycache__/*
-common/data_processed/*
-common/data_raw/*
-env/*
-maps/__pycache__/*
+dash_app/__pycache__/*
+dash_app/common/__pycache__/*
+dash_app/common/data_processed/*
+dash_app/common/data_raw/*
+dash_app/env/*
+dash_app/maps/__pycache__/*

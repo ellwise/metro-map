@@ -1,0 +1,5 @@
+__pycache__/*
+common/__pycache__/*
+common/data_raw/*
+env/*
+maps/__pycache__/*

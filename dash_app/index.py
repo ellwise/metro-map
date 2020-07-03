@@ -2,7 +2,7 @@ import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 
-from app import app
+from app import app, server
 import maps
 
 app.title = "Custom Metro Map"
@@ -28,4 +28,4 @@ def display_page(pathname):
         return '404'
 
 if __name__=="__main__":
-    app.run_server(debug=False, host="0.0.0.0", port="8050")
+    app.run_server(debug=False, host="0.0.0.0", port="8000")
