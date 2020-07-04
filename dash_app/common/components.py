@@ -67,8 +67,8 @@ def plot_nx(G, station_list, style):
             y=edge_y,
             mode='lines',
             line=dict(
-                color=colour if name!="pedestrian" else "#000000",
-                width=3 if name!="pedestrian" else 6
+                color=colour if name!="Pedestrian" else "#000000",
+                width=3 if name!="Pedestrian" else 6
             ),
             name=name,
             showlegend=name!="Pedestrian"
