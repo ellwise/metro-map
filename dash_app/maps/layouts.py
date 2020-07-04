@@ -14,6 +14,14 @@ def make_layout():
         children=[
             dbc.Row(
                 className="mt-3",
+                children=dbc.Col(
+                    children=html.P('''
+                        Use the search box below to add as many stops as you like to your map.
+                        The app will find the fastest route between every pair.
+                    ''')
+                )
+            ),
+            dbc.Row(
                 justify="between",
                 children=[
                     dbc.Col(
