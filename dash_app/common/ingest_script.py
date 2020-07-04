@@ -114,12 +114,56 @@ df_edges.loc[df_edges["line_id"]=="pedestrian","mode"] = "pedestrian"
 df_edges.loc[df_edges["line_id"]=="pedestrian","line_name"] = "Pedestrian"
 
 # add times to the link dataframe
-df_edges["weight"] = 3 # default for pedestrian links
-df_edges.loc[df_edges["mode"]=="bus","weight"] = 0.5 + 320 / (9.3*1.60934*0.277778*60) # miles/hr > km/hr > m/s > m/min
-df_edges.loc[df_edges["mode"]=="overground","weight"] = 5 # guess... do some analysis on the excel files I have... maybe do it by line...
-df_edges.loc[df_edges["mode"]=="tube","weight"] = 2 # guess...
-df_edges.loc[df_edges["mode"]=="dlr","weight"] = 3 # guess...
-df_edges.loc[df_edges["line_id"]=="waterloo-city","weight"] = 6 # guess...
+print("Adding timing information...")
+# find distance between stops
+df_edges = pd.merge(
+    left=df_edges,
+    right=df_naptans[["naptan","x","y"]],
+    left_on=["naptan_from"],
+    right_on=["naptan"],
+    how="left",
+    validate="m:1"
+)
+df_edges.rename(inplace=True, columns={"x":"x_from","y":"y_from"})
+df_edges.drop(inplace=True, columns="naptan")
+df_edges = pd.merge(
+    left=df_edges,
+    right=df_naptans[["naptan","x","y"]],
+    left_on=["naptan_to"],
+    right_on=["naptan"],
+    how="left",
+    validate="m:1"
+)
+df_edges.rename(inplace=True, columns={"x":"x_to","y":"y_to"})
+df_edges.drop(inplace=True, columns="naptan")
+df_edges["dx"] = df_edges["x_to"] - df_edges["x_from"]
+df_edges["dy"] = df_edges["y_to"] - df_edges["y_from"]
+df_edges.drop(inplace=True, columns=["x_from","y_from","x_to","y_to"])
+df_edges["dx2"] = df_edges["dx"] * df_edges["dx"]
+df_edges["dy2"] = df_edges["dy"] * df_edges["dy"]
+df_edges.drop(inplace=True, columns=["dx","dy"])
+df_edges["dist2"] = df_edges["dx2"] + df_edges["dy2"]
+df_edges.drop(inplace=True, columns=["dx2","dy2"])
+df_edges["distance"] = df_edges["dist2"].apply(np.sqrt)
+df_edges.drop(inplace=True, columns=["dist2"])
+# use speed to determine time between stops
+df_speeds = pd.read_csv("./common/data_processed/speed_by_line.csv")
+df_edges = pd.merge(
+    left=df_edges,
+    right=df_speeds,
+    on=["line_id","mode"],
+    how="left",
+    validate="m:1"
+)
+df_edges["weight"] = df_edges["distance"] / df_edges["speed"]
+# add a default for pedestrian links
+df_edges.loc[df_edges["line_id"]=="pedestrian","weight"] = 3
+# deal with missing bus values
+mask = df_edges["weight"].isna() & df_edges["mode"].isin(["bus"])
+med_bus_speed = df_speeds.loc[df_speeds["mode"]=="bus","speed"].median()
+df_edges.loc[mask,"weight"] = df_edges.loc[mask,"distance"] / med_bus_speed
+#print(df_edges[df_edges["weight"].isna()].head()) # check we've assigned all the weights...
+df_edges.drop(inplace=True, columns=["distance","speed"])
 
 # build the network
 print("Building network...")
@@ -147,5 +191,5 @@ if save:
     #with open("./common/data_processed/nx_graph_all.json", "w") as f:
     #    json.dump(data, f)
     nx.write_graphml(G, "./common/data_processed/nx_graph_all.graphml")
-    G = ig.read("./common/data_processed/nx_graph_all.graphml")
-    G.write_pickle("./common/data_processed/ig_graph_all.pickle")
+    G = ig.load("./common/data_processed/nx_graph_all.graphml")
+    G.save("./common/data_processed/ig_graph_all.pickle")
