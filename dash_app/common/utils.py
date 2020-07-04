@@ -15,7 +15,8 @@ def get_subgraph(modes):
         v for e in GRAPH.es for v in (e.source, e.target)
         if e["mode"] not in [*modes,"pedestrian"]
     ))
-    vs = frozenset(GRAPH.vs).difference(vs_not)
+    vs_all = frozenset((v.index for v in GRAPH.vs))
+    vs = vs_all.difference(vs_not)
     G = GRAPH.induced_subgraph(vs)
     return G
 
