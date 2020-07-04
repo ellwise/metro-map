@@ -32,7 +32,7 @@ def update_plot(station_list, style, modes):
     G = get_subgraph(modes)
 
     G_sub = shortest_paths(G, station_list)
-    G_sub = simplify_graph(G_sub)
+    G_sub = simplify_graph(G_sub, simplify_weights=True)
     G_sub = style_graph(G_sub)
 
     fig = plot_nx(G_sub, station_list, style)

@@ -81,7 +81,7 @@ def shortest_paths(G, station_list):
 
     return G_nx
 
-def simplify_graph(G):
+def simplify_graph(G, simplify_weights=True):
     G_sub = nx.DiGraph()
     ebunch = ((node1.split(": ")[1], node2.split(": ")[1], G.edges[node1,node2])
         for node1,node2 in G.edges())
@@ -89,7 +89,10 @@ def simplify_graph(G):
     G_sub.add_edges_from(ebunch)
     nx.set_node_attributes(G_sub, {k:v for k,v in nbunch})
     #nx.set_edge_attributes(G_sub, 1, name="weight")
-    nx.set_edge_attributes(G_sub, {e:(0.001 if G_sub.edges[e]["line_id"]=="pedestrian" else 1) for e in G_sub.edges()}, name="weight")
+    if simplify_weights:
+        nx.set_edge_attributes(G_sub, {e:(0.001 if G_sub.edges[e]["line_id"]=="pedestrian" else 1) for e in G_sub.edges()}, name="weight")
+    else:
+        nx.set_edge_attributes(G_sub, {e:G_sub.edges[e]["weight"] for e in G_sub.edges()}, name="weight")
 
     return G_sub
 
