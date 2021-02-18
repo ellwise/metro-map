@@ -8,3 +8,4 @@ notebooks/.ipynb_checkpoints/*
 notebooks/foi-speeds.ods
 "notebooks/Inter station database.xls"
 notebooks/route-all-bus-speeds-to-p02-2020.xlsx
+**requirements.txt

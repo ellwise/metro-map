@@ -2,9 +2,11 @@
 
 1. Set up a new virtual environment: `python3 -m venv env`
 2. Activate that environment: `source env/bin/activate`
-3. Install the required packages: `pip install -r requirements.txt`
-4. Start up a local server: `python index.py`
-5. Navigate to the app in a browser (the address will be printed in the console)
+3. Install: `pip install pip-tools`
+4. Generate package requirements: `pip-compile`
+5. Install the required packages: `pip install -r requirements.txt`
+6. Start up a local server: `python index.py`
+7. Navigate to the app in a browser (the address will be printed in the console)
 
 # Instructions for building and running locally with docker
 [Guide](https://towardsdatascience.com/how-to-use-docker-to-deploy-a-dashboard-app-on-aws-8df5fb322708)
